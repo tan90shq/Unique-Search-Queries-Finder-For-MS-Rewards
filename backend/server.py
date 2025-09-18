@@ -1,0 +1,341 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import random
+
+# ===============================
+# CONFIG
+# ===============================
+MAX_DEFAULT = 10
+
+# Curated human-like unique search queries
+HUMAN_QUERIES = [
+"how to file income tax in india", 
+"best pizza near me", 
+"world cup 2026 schedule", 
+"what is bitcoin price today", 
+"how to lose weight fast", 
+"latest iphone release", 
+"virat kohli wife name", 
+"why is my phone battery draining so fast", 
+"top 10 movies on netflix", 
+"how to make money online", 
+"weather in delhi today", 
+"elon musk twitter news", 
+"how to fix slow internet", 
+"best laptop under 50000", 
+"how to learn python programming", 
+"latest bollywood gossip", 
+"space x starship launch date", 
+"how to bake a cake", 
+"ind vs aus live score", 
+"top trending youtube videos", 
+"how to start a youtube channel", 
+"ai image generator free", 
+"world population 2025", 
+"how to meditate properly", 
+"top cricket players india", 
+"best coding websites", 
+"why is my wifi not working", 
+"latest football scores", 
+"how to invest in stock market", 
+"top 10 novels to read", 
+"best restaurants in mumbai", 
+"how to grow plants indoors", 
+"fifa world cup 2026 teams", 
+"latest movies in theater", 
+"how to make handmade crafts", 
+"what is nft crypto", 
+"best online courses for ai", 
+"how to write a resume", 
+"indian festivals september 2025", 
+"latest gaming news", 
+"how to create instagram reels", 
+"top travel destinations 2025", 
+"how to bake bread", 
+"latest news in india", 
+"how to learn data science", 
+"best budget smartphones", 
+"why is my computer so slow", 
+"how to learn javascript quickly", 
+"best tourist spots in delhi", 
+"latest cryptocurrency trends", 
+"how to fix broken phone screen", 
+"top netflix series 2025", 
+"how to improve english speaking skills", 
+"world news today", 
+"how to reduce stress", 
+"latest ai research", 
+"best exercises at home", 
+"how to start freelancing", 
+"new movies coming this week", 
+"how to start blogging", 
+"best online shopping sites", 
+"how to learn graphic design", 
+"latest tech gadgets", 
+"how to lose belly fat", 
+"top trending memes", 
+"how to cook healthy meals", 
+"how to get a passport india", 
+"latest iphone rumors", 
+"best places to visit in india", 
+"how to invest in mutual funds", 
+"top universities in usa", 
+"how to make money on instagram", 
+"latest startup funding news", 
+"how to improve memory", 
+"best online learning platforms", 
+"how to create a mobile app", 
+"latest movie trailers", 
+"how to boost immunity naturally", 
+"best laptops for students", 
+"how to build a personal brand", 
+"latest football matches", 
+"how to start a podcast", 
+"top trending tik tok videos", 
+"how to apply for pan card", 
+"latest cricket scores india", 
+"best diet for weight loss", 
+"how to learn react js", 
+"famous indian poets", 
+"how to do yoga for beginners", 
+"top coding interview questions", 
+"how to increase website traffic", 
+"best online money making apps", 
+"how to cook italian food", 
+"latest government schemes india", 
+"how to start affiliate marketing", 
+"best fitness apps", 
+"how to write a good essay", 
+"latest tech news in india", 
+"how to start online business", 
+"best movies on netflix 2025", 
+"how to learn spanish fast", 
+"latest cryptocurrency prices", 
+"how to do meditation for anxiety", 
+"best restaurants in bangalore", 
+"how to get free netflix account", 
+"latest bollywood movies box office", 
+"how to fix wifi not connecting", 
+"best smartphones under 20000", 
+"how to learn machine learning", 
+"top travel blogs india", 
+"how to check bank balance online", 
+"latest news headlines india", 
+"how to make cake without oven", 
+"top online courses 2025", 
+"how to learn photography", 
+"latest movie reviews", 
+"how to improve concentration", 
+"best health apps", 
+"how to invest in crypto safely", 
+"latest startup launches", 
+"how to cook indian food", 
+"top 10 songs this week", 
+"how to fix laptop keyboard not working", 
+"latest sports news india", 
+"how to make youtube thumbnail", 
+"best online courses for coding", 
+"how to lose weight naturally", 
+"top trending games", 
+"how to make money from home", 
+"latest movies 2025 bollywood", 
+"how to create wordpress blog", 
+"best photography tips for beginners", 
+"how to start online coaching", 
+"latest technology updates", 
+"how to increase instagram followers", 
+"best diet plan for muscle gain", 
+"how to learn excel quickly", 
+"top trending hashtags india", 
+"how to start freelancing website", 
+"latest news international", 
+"how to make coffee at home", 
+"best budget smartphones 2025", 
+"how to learn c++ programming", 
+"latest football news europe", 
+"how to grow hair fast", 
+"top travel destinations europe", 
+"how to invest in real estate", 
+"best movies to watch on netflix", 
+"how to get rid of acne fast", 
+"latest technology gadgets 2025", 
+"how to learn sql database", 
+"top trending youtube shorts", 
+"how to start dropshipping business", 
+"latest music albums india", 
+"how to learn digital marketing", 
+"best online marketplaces india", 
+"how to start youtube channel for gaming", 
+"latest iphone features", 
+"how to create mobile game", 
+"top trending news today", 
+"how to fix phone not charging", 
+"best online shopping deals india", 
+"how to make chocolate cake", 
+"latest sports scores international", 
+"how to increase website ranking", 
+"top trending ai tools", 
+"how to make money from youtube", 
+"best travel destinations asia", 
+"how to learn graphic design online", 
+"latest football scores international", 
+"how to start podcast for beginners", 
+"best fitness routines at home", 
+"how to invest in shares for beginners", 
+"latest cricket news international", 
+"how to make handmade crafts at home", 
+"top trending memes india", 
+"how to cook healthy dinner", 
+"best online courses for ai programming", 
+"how to start blog on wordpress free", 
+"latest bollywood news gossip", 
+"how to increase youtube subscribers fast", 
+"best smartphones cameras", 
+"how to learn react native", 
+"latest sports events india", 
+"how to fix slow pc", 
+"best diet apps", 
+"how to make pizza at home", 
+"latest cricket highlights", 
+"how to start online business without investment", 
+"top trending hashtags 2025", 
+"how to fix mobile screen", 
+"best online courses for web development", 
+"how to make coffee without machine", 
+"latest movies hollywood 2025", 
+"how to learn javascript basics", 
+"best books to read in 2025", 
+"how to cook pasta", 
+"latest technology news international", 
+"how to improve focus at work", 
+"top trending apps india", 
+"how to start youtube channel for education", 
+"best online coding tutorials", 
+"how to fix laptop overheating", 
+"latest news sports india", 
+"how to make handmade gifts", 
+"best AI tools for productivity", 
+"how to invest in bitcoin safely", 
+"latest fashion trends india", 
+"how to start blog without domain", 
+"top trending music videos", 
+"how to bake chocolate brownies", 
+"latest movies release date", 
+"how to improve memory skills", 
+"best smartphones 2025", 
+"how to fix wifi slow speed", 
+"latest news technology", 
+"how to start online teaching", 
+"best websites to learn coding", 
+"how to make pizza without oven", 
+"latest cricket match results", 
+"how to increase instagram engagement", 
+"best online marketplaces", 
+"how to cook indian breakfast", 
+"latest football results", 
+"how to create digital art", 
+"best ways to save money", 
+"how to start affiliate website", 
+"latest tech gadgets 2025", 
+"how to make smoothie at home", 
+"best online earning apps", 
+"how to learn python basics", 
+"latest news international sports", 
+"how to start online freelancing", 
+"best laptops 2025", 
+"how to fix camera not working", 
+"latest AI research updates", 
+"how to make handmade jewelry", 
+"best movies in theaters 2025", 
+"how to start youtube channel from scratch", 
+"latest cryptocurrency news", 
+"how to learn data analysis", 
+"best websites for online courses", 
+"how to cook healthy snacks", 
+"latest fashion accessories 2025", 
+"how to increase website traffic free", 
+"best online tools for productivity", 
+"how to make pizza dough", 
+"latest trending memes worldwide", 
+"how to fix phone software issues", 
+"best smartphones under 40000", 
+"how to start youtube channel for vlogs", 
+"latest tech innovations", 
+"how to learn html and css", 
+"best travel destinations india 2025", 
+"how to make chocolate muffins", 
+"latest cricket highlights india", 
+"how to start online store free", 
+"best fitness apps 2025", 
+"how to make homemade pasta", 
+"latest movies box office", 
+"how to increase youtube watch time", 
+"best online marketplaces 2025", 
+"how to fix computer crashing", 
+"latest global news", 
+"how to learn seo basics", 
+"best smartphones under 30000 2025", 
+"how to create mobile app without coding", 
+"latest bollywood trailer", 
+"how to make fruit cake", 
+"best AI websites", 
+"how to learn angular js", 
+"latest movies hollywood", 
+"how to fix computer virus problem", 
+"best online courses for beginners", 
+"how to make smoothie without blender"
+]
+
+# ===============================
+# Initialize Flask app
+# ===============================
+app = Flask(__name__)
+app.static_folder = 'static'
+from flask import send_from_directory
+import os
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    return send_from_directory(app.static_folder, 'index.html')
+CORS(app, origins="*")
+
+
+# ===============================
+# Function to generate unique random queries
+# ===============================
+def generate_queries(max_terms):
+    shuffled = HUMAN_QUERIES.copy()
+    random.shuffle(shuffled)
+    return shuffled[:max_terms]
+
+
+# ===============================
+# API Route
+# ===============================
+@app.route("/api/trends")
+def get_trends():
+    """
+    Endpoint: Fetch unique, human-like search queries.
+    Query params:
+      - max: number of terms (default 10)
+    """
+    try:
+        max_terms = int(request.args.get("max", MAX_DEFAULT))
+    except ValueError:
+        max_terms = MAX_DEFAULT
+
+    terms = generate_queries(max_terms)
+
+    # Return JSON in nested format (for frontend parsing)
+    return jsonify({"nested": [[t] for t in terms]})
+
+
+# ===============================
+# Run the app
+# ===============================
+if __name__ == "__main__":
+    print("[INFO] Unique Search Queries Finder backend running at http://127.0.0.1:5000")
+    app.run(port=5000, debug=True)
